@@ -7,14 +7,14 @@ export default function Home() {
   const [nationalities, setNationalities] = useState([]);
   const [gender, setGender] = useState(null);
   const [age, setAge] = useState(null);
-  const [isLoading, setIsLoading] = useState(false); 
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (name) {
       try {
-        setIsLoading(true); 
+        setIsLoading(true);
         const [nationalizeResponse, genderizeResponse, agifyResponse] = await Promise.all([
           fetch(`https://api.nationalize.io?name=${name}`).then((res) => res.json()),
           fetch(`https://api.genderize.io?name=${name}`).then((res) => res.json()),
@@ -26,7 +26,7 @@ export default function Home() {
         setNationalities(
           sortedNationalities.map((entry) => ({
             ...entry,
-            fullName: countryNames[entry.country_id] || entry.country_id, 
+            fullName: countryNames[entry.country_id] || entry.country_id,
           }))
         );
 
@@ -35,7 +35,7 @@ export default function Home() {
       } catch (error) {
         console.error('API call error:', error);
       } finally {
-        setIsLoading(false); 
+        setIsLoading(false);
       }
     }
   };
@@ -47,6 +47,33 @@ export default function Home() {
     setAge(null);
   };
 
+  const determineImage = () => {
+    let newAge = age.age;
+    let newGender = gender.gender;
+
+    if (age && gender) {  
+      if (newAge >= 0 && newAge <= 25) {
+        if (newGender === 'female') {
+          return "youngW.jpg";
+        } else if (newGender === 'male') {
+          return "youngM.jpg";
+        }
+      } else if (newAge > 25 && newAge <= 50) {
+        if (newGender === 'female') {
+          return "midW.jpg";
+        } else if (newGender === 'male') {
+          return 'midM.jpg';
+        }
+      } else if (newAge > 50 && newAge <= 100) {
+        if (newGender === 'female') {
+          return 'oldW.jpg';
+        } else if (newGender === 'male') {
+          return 'oldM.jpg';
+        }
+      }
+    }
+    return 'youngW.jpg';
+  };
   return (
     <div className="bg-gray-100 min-h-screen flex items-center justify-center">
       <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
@@ -78,37 +105,54 @@ export default function Home() {
             <i className="fas fa-spinner fa-spin text-blue-500 text-2xl"></i> Loading...
           </div>
         )}
-        {!isLoading && nationalities.length > 0 && (
+      </div>
+      {nationalities.length > 0 && (
+        <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md ml-4">
+          
+          <img
+            src={determineImage()} 
+            alt="User Image"
+            style={{
+              width: '140px',
+              height: '200px',
+              border: '2px solid #ddd',
+              borderRadius: '5px',
+              boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+              objectFit: 'cover',
+              display: 'block',
+              margin: '0 auto',
+              display: 'flex',
+              justifyContent: 'center', 
+              alignItems: 'center', 
+            }}
+          />
           <div>
-            <h2 className="text-lg font-semibold">Nationality:</h2>
-            <p className="text-gray-600  mb-2 ">
-              {nationalities.length > 0 && (
-                <>
-                  <span>
-                    <span style={{ fontWeight: 'bold' }}>
-                      {(nationalities[0].probability * 100).toFixed(2)}%
-                    </span>{' '}
-                     probability is that the user is from{' '}
-                    <span style={{ fontWeight: 'bold' }}>{nationalities[0].fullName}</span>.
-                  </span>
-                </>
-              )}
+            <h3 className="text-lg font-semibold">Nationality:</h3>
+            <p className="text-gray-600 mb-2">
+              <span>
+                <span style={{ fontWeight: 'bold' }}>
+                  {(nationalities[0].probability * 100).toFixed(2)}%
+                </span>{' '}
+                probability is that the user is from{' '}
+                <span style={{ fontWeight: 'bold' }}>{nationalities[0].fullName}</span>.
+              </span>
             </p>
           </div>
-        )}
-        {!isLoading && gender && (
-          <div>
-            <h2 className="text-lg font-semibold">Gender:</h2>
-            <p className="text-gray-600  mb-2">{gender.gender === 'male' ? 'Male' : 'Female'}</p>
-          </div>
-        )}
-        {!isLoading && age && (
-          <div>
-            <h2 className="text-lg font-semibold">Age:</h2>
-            <p className="text-gray-600  mb-2">{age.age}</p>
-          </div>
-        )}
-      </div>
+          {gender && (
+            <div>
+              <h3 className="text-lg font-semibold">Gender:</h3>
+              <p className="text-gray-600 mb-2">{gender.gender === 'male' ? 'Male' : 'Female'}</p>
+            </div>
+          )}
+          {age && (
+            <div>
+              <h3 className="text-lg font-semibold">Age:</h3>
+              <p className="text-gray-600 mb-2">{age.age}</p>
+            </div>
+          )}
+
+        </div>
+      )}
     </div>
   );
 }
